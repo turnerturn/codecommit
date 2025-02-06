@@ -1,1 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Bowl Squares</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .hero {
+            background: linear-gradient(to right, #007bff, #6610f2);
+            color: white;
+            padding: 50px 0;
+            text-align: center;
+        }
+        .card {
+            transition: 0.3s;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>Super Bowl Squares</h1>
+        <p>Generate your Super Bowl squares and determine the home and away teams.</p>
+    </div>
 
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <button id="createBoardBtn" class="btn btn-primary">Create Board</button>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-6 text-center">
+                <h5>Home Team: <span id="homeTeam">Dallas Cowboys</span></h5>
+            </div>
+            <div class="col-md-6 text-center">
+                <h5>Away Team: <span id="awayTeam">Kansas City Chiefs</span></h5>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center mt-5 p-3 bg-light">
+        <p>&copy; 2025 Super Bowl Squares</p>
+    </footer>
+
+    <script>
+        document.getElementById('createBoardBtn').addEventListener('click', function() {
+            fetch('https://fan.api.espn.com/apis/v2/fans/%7B8276012A-1968-4A87-89E7-D50CCB7320F1%7D?featureFlags=expandAthlete&featureFlags=isolateEvents&xhr=1&displayEvents=true&displayNow=true&displayRecs=true&recLimit=5&userId=%7B8276012A-1968-4A87-89E7-D50CCB7320F1%7D&source=ESPN.com+-+FAM&lang=en&section=espn&region=us')
+                .then(response => response.json())
+                .then(data => {
+                    const currentYear = new Date().getFullYear();
+                    const superBowlEvent = data.preferences.flatMap(pref => pref.events)
+                        .find(event => event.seasonEndDate.startsWith(currentYear.toString()) && event.weekText === 'Super Bowl');
+
+                    if (superBowlEvent) {
+                        const [awayTeam, homeTeam] = superBowlEvent.name.split(' at ');
+                        document.getElementById('homeTeam').textContent = homeTeam;
+                        document.getElementById('awayTeam').textContent = awayTeam;
+                    } else {
+                        alert('Super Bowl event not found for the current year.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching Super Bowl data:', error);
+                    alert('Failed to fetch Super Bowl data.');
+                });
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
