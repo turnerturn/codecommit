@@ -20,6 +20,12 @@ You can use this space to archive interesting reading material, implementation g
 aka, a file name is off limits if someone else already committed to this distributed directory with that intended spec.
 
 
+## Sandboxing Environment
+We encourage you to try using github codespaces when sandboxing software solutions.  It is a pretty convenient tool and you will likely enjoy the experience.
+
+### Getting Started With 'Universal' Codespace
+TODO document instructions...
+
 
 
 
