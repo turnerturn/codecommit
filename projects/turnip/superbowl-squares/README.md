@@ -13,3 +13,10 @@ This is implemented where team names can be configured per the current year's su
 - When the "start game" button is clicked then 0-9 point values will be assigned to row 1 and column a of our 10x10 grid. No more squares can be purchased.   The home team will be designated for column a points.  The away team will be designated for column b points.
 > **TIP:** To avoid losing the memory of this generated board, make sure to save the resulting html as pdf.  
 - At the end of each quarter of our game, the last digit of each team's score will determine the winning square of our grid.  i.e.. if chiefs (away) have 32 points and eagles (home) have 45 points then the winning square will have column a's designated value of "5" and row 1's designated value of "2".
+
+## Create Board Functionality
+- When "Create Board" is clicked, the home team and away team of the current year's Super Bowl will be determined by sending an HTTP GET request to the ESPN API.
+- The response from the ESPN API will be parsed to find the event where the `seasonEndDate` is for the current year and the `weekText` is "Super Bowl".
+- The `event.name` of this element will specify a string value similar to "Kansas City Chiefs at Philadelphia Eagles".
+- The home team will be assigned to the sub-text following the first index of " at ".
+- The away team will be assigned to the start of that string up to the " at " index.
