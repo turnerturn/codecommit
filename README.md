@@ -24,8 +24,11 @@ aka, a file name is off limits if someone else already committed to this distrib
 We encourage you to try using github codespaces when sandboxing software solutions.  It is a pretty convenient tool and you will likely enjoy the experience.
 
 ### Getting Started With 'Universal' Codespace
-TODO document instructions...
+TODO document instructions with [Default Linux Universal Template]([https://github.com/lx-0/devcontainer-templates/tree/main/src/universal-arm64](https://github.com/devcontainers/templates/tree/main/src/universal))
 
+> More devcontainer templates references [here](https://containers.dev/templates)
 
+- [devcontainers](https://github.com/devcontainers)
+  Official organization for the Development Containers Specification and dev container resources.
 
 
