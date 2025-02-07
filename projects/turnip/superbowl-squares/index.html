@@ -1,5 +1,5 @@
-<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,59 +9,225 @@
         body {
             background-color: #f8f9fa;
         }
+
         .hero {
             background: linear-gradient(to right, #007bff, #6610f2);
             color: white;
             padding: 50px 0;
             text-align: center;
         }
+
         .card {
             transition: 0.3s;
         }
+
         .card:hover {
             transform: scale(1.05);
         }
+
+        .team-info {
+            display: none;
+        }
+
+        .home-team {
+            background-color: rgb(0, 76, 84);
+            /* faded green */
+            color: white;
+        }
+
+        .away-team {
+            background-color: rgb(227, 24, 54);
+            /* faded red */
+            color: white;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(11, 1fr);
+            gap: 1px;
+            margin-top: 20px;
+        }
+
+        .grid div {
+            background: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .neutral {
+            background-color: rgb(73, 73, 73);
+            color: black;
+        }
+
+        .grid .home-header {
+            background-color: rgb(24, 94, 101);
+            /* faded green */
+            color: white;
+        }
+
+        .grid .away-header {
+            background-color: rgb(227, 24, 54);
+            /* faded red */
+            color: white;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .team-info-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .team-info {
+            flex: 1;
+            margin: 0 10px;
+        }
     </style>
 </head>
-<body>
+
+<body class="" style="">
+
     <div class="hero">
         <h1>Super Bowl Squares</h1>
-        <p>Generate your Super Bowl squares and determine the home and away teams.</p>
+        <p class="d-print-none">Generate your Super Bowl squares.</p>
     </div>
 
     <div class="container mt-5">
-        <div class="row">
-            <div class="col-md-12 text-center">
-                <button id="createBoardBtn" class="btn btn-primary">Create Board</button>
+        <div class="button-group">
+            <button id="createBoardBtn" class="btn btn-primary d-print-none">New Board</button>
+            <button class="btn btn-secondary d-print-none" id="printBtn">PRINT</button>
+        </div>
+        <div class="team-info-container">
+            <div class="text-center team-info home-team" style="display: block;">
+                <h5>Home Team: <span id="homeTeam">Philadelphia Eagles</span></h5>
+            </div>
+            <div class="text-center team-info away-team" style="display: block;">
+                <h5>Away Team: <span id="awayTeam">Kansas City Chiefs</span></h5>
             </div>
         </div>
-        <div class="row mt-3">
-            <div class="col-md-6 text-center">
-                <h5>Home Team: <span id="homeTeam">Dallas Cowboys</span></h5>
+        <div id="gridContainer" class="text-center">
+            <div class="grid">
             </div>
-            <div class="col-md-6 text-center">
-                <h5>Away Team: <span id="awayTeam">Kansas City Chiefs</span></h5>
+        </div>
+        <div class="button-group">
+            <button id="purchaseSquaresBtn" class="btn btn-success d-print-none" style="display: block;">Purchase Squares</button>
+            <button id="distributeSquaresButton" class="btn btn-secondary d-print-none" style="display: block;" onclick="distributeSquaresToGrid()">Distribute Squares</button>
+        </div>
+    </div>
+
+    <footer class="text-center mt-5 p-3 bg-light  d-print-none">
+        <p>© 2025 Super Bowl Squares</p>
+    </footer>
+
+    <!-- Create Board Warning Modal -->
+    <div class="modal fade" id="createBoardWarningModal" tabindex="-1" aria-labelledby="createBoardWarningModalLabel"
+        style="display: none;" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createBoardWarningModalLabel">Warning</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Creating a new board will erase the current board in session. Do you want to continue?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmCreateBoardBtn">Continue</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <footer class="text-center mt-5 p-3 bg-light">
-        <p>&copy; 2025 Super Bowl Squares</p>
-    </footer>
+    <!-- Purchase Squares Modal -->
+    <div class="modal fade" id="purchaseSquaresModal" tabindex="-1" aria-labelledby="purchaseSquaresModalLabel"
+        style="display: none;" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="purchaseSquaresModalLabel">Purchase Squares</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="quantityInput" class="form-label">Quantity</label>
+                        <input type="number" class="form-control" id="quantityInput" min="1" max="100">
+                        <pre id="available-squares-count" class="text-muted"></pre>
+                    </div>
+                    <div class="mb-3">
+                        <label for="initialsInput" class="form-label">Initials</label>
+                        <input type="text" class="form-control" id="initialsInput" maxlength="3">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmPurchaseSquaresBtn">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        document.getElementById('createBoardBtn').addEventListener('click', function() {
+        document.addEventListener('DOMContentLoaded', function () {
+            renderGrid();
+        });
+        document.getElementById('printBtn').addEventListener('click', function () {
+            window.print();
+        });
+
+        document.getElementById('createBoardBtn').addEventListener('click', function () {
+            var modal = new bootstrap.Modal(document.getElementById('createBoardWarningModal'));
+            modal.show();
+        });
+
+        document.getElementById('confirmCreateBoardBtn').addEventListener('click', function () {
+            $('#createBoardWarningModal').modal('hide');
+            createBoard();
+        });
+
+        document.getElementById('purchaseSquaresBtn').addEventListener('click', function () {
+            $('#purchaseSquaresModal').modal('show');
+        });
+
+        document.getElementById('confirmPurchaseSquaresBtn').addEventListener('click', function () {
+            const quantity = parseInt(document.getElementById('quantityInput').value);
+            const initials = document.getElementById('initialsInput').value;
+            if (quantity > 0 && initials) {
+                purchaseSquares(quantity, initials);
+                $('#purchaseSquaresModal').modal('hide');
+            } else {
+                alert('Please enter a valid quantity and initials.');
+            }
+        });
+
+        function createBoard() {
+            localStorage.removeItem('superBowlGrid');
+            localStorage.removeItem('grid');
+            localStorage.removeItem('superBowlGrid');
+            localStorage.removeItem('transactions');
+            localStorage.removeItem('squares');
             fetch('https://fan.api.espn.com/apis/v2/fans/%7B8276012A-1968-4A87-89E7-D50CCB7320F1%7D?featureFlags=expandAthlete&featureFlags=isolateEvents&xhr=1&displayEvents=true&displayNow=true&displayRecs=true&recLimit=5&userId=%7B8276012A-1968-4A87-89E7-D50CCB7320F1%7D&source=ESPN.com+-+FAM&lang=en&section=espn&region=us')
                 .then(response => response.json())
                 .then(data => {
+                    console.log('Super Bowl data:', data);
                     const currentYear = new Date().getFullYear();
-                    const superBowlEvent = data.preferences.flatMap(pref => pref.events)
-                        .find(event => event.seasonEndDate.startsWith(currentYear.toString()) && event.weekText === 'Super Bowl');
+                    const events = collectEvents(data);
+                    const superBowlEvent = events.find(event => event.seasonEndDate.startsWith(currentYear.toString()) && event.weekText === 'Super Bowl');
 
                     if (superBowlEvent) {
                         const [awayTeam, homeTeam] = superBowlEvent.name.split(' at ');
                         document.getElementById('homeTeam').textContent = homeTeam;
                         document.getElementById('awayTeam').textContent = awayTeam;
+                        document.querySelectorAll('.team-info').forEach(el => el.style.display = 'block');
+                        renderGrid();
                     } else {
                         alert('Super Bowl event not found for the current year.');
                     }
@@ -70,9 +236,186 @@
                     console.error('Error fetching Super Bowl data:', error);
                     alert('Failed to fetch Super Bowl data.');
                 });
-        });
+        }
+
+        function collectEvents(data) {
+            let events = [];
+            if (data.preferences) {
+                data.preferences.forEach(pref => {
+                    if (pref.metaData && pref.metaData.events) {
+                        events = events.concat(pref.metaData.events);
+                    }
+                });
+            }
+            return events;
+        }
+        // Function to initialize squares from an array of items
+        function initSquares(items) {
+            const squares = [];
+
+            items.forEach(item => {
+                for (let i = 0; i < item.count; i++) {
+                    squares.push({ name: item.name, shape: "square" });
+                }
+            });
+            document.getElementById('available-squares-count').textContent = `Available Squares: ${100 - squares.length}`;
+            return squares;
+        }
+        // Function to initialize and render a new grid
+        function initializeSquares() {
+
+            if(!localStorage.getItem('transactions')) {
+                return;
+            }
+            const transactions =   JSON.parse(localStorage.getItem('transactions'));
+            const squares = initSquares(transactions);
+            localStorage.setItem('squares', JSON.stringify(squares));
+        }
+
+        // Function to purchase squares and save them to localStorage
+        function purchaseSquares(count, name) {
+            if(localStorage.getItem('squares')) {
+                let squares = JSON.parse(localStorage.getItem('squares'));
+                if(squares.length + count > 100) {
+                    let availableSquares = 100 - squares.length;
+                    alert(`Only ${availableSquares} squares are available for purchase.`);
+                    return;
+                }
+            }
+            const key = "transactions";
+
+            // Retrieve existing transactions from localStorage
+            let transactions = localStorage.getItem(key);
+            transactions = transactions ? JSON.parse(transactions) : [];
+
+            // Add new purchase entry
+            transactions.push({ count, name });
+
+            // Save updated transactions back to localStorage
+            localStorage.setItem(key, JSON.stringify(transactions));
+            initializeSquares();
+        }
+
+        function distributeSquaresToGrid() {
+            const squares = (localStorage.getItem('squares')) ? JSON.parse(localStorage.getItem('squares')) : [];
+            shuffleArray(squares);
+            localStorage.setItem('squares', JSON.stringify(squares));
+            let squareCount = 0;
+            for (let row = 2; row < 11; row++) {
+                for (let col = 2; col < 12; col++) {
+                  if(squareCount >= squares.length) {
+                    continue;
+                  }
+                    const id = `col-${col}-row-${row}`;
+                    document.getElementById(id).textContent = squares[squareCount].name;
+                    squareCount = squareCount + 1;
+                }
+            }
+            localStorage.setItem('superBowlGrid', document.getElementById('gridContainer').innerHTML);
+        }
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function renderGrid() {
+            const gridContainer = document.getElementById('gridContainer');
+            if (localStorage.getItem('superBowlGrid')) {
+                gridContainer.innerHTML = localStorage.getItem('superBowlGrid');
+            } else {
+                gridContainer.innerHTML = '';
+                const grid = document.createElement('div');
+                grid.classList.add('grid');
+                for (let row = 1; row <= 11; row++) {
+                    for (let col = 1; col < 12; col++) {
+                        const cell = document.createElement('div');
+                        cell.id = `col-${col}-row-${row}`;
+                        console.log(cell.id);
+                        grid.appendChild(cell);
+                    }
+                }
+                gridContainer.appendChild(grid);
+                renderGridHeaders();
+                saveSuperBowlGrid();
+            }
+            document.getElementById('purchaseSquaresBtn').style.display = 'block';
+        }
+        function renderGridHeaders() {
+            const awayNumbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+            const homeNumbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+            shuffleArray(awayNumbers);
+            shuffleArray(homeNumbers);
+
+            document.getElementById(`col-1-row-1`).classList.add('neutral');
+            for (let i = 2; i < 12; i++) {
+                const cell = document.getElementById(`col-${i}-row-1`);
+                cell.textContent = awayNumbers[i - 2];
+                cell.classList.add('away-header', 'away-team');
+            }
+            for (let i = 1; i < 12; i++) {
+                const cell = document.getElementById(`col-1-row-${i}`);
+                cell.textContent = homeNumbers[i - 2];
+                cell.classList.add('home-header', 'home-team');
+            }
+        }
+
+        function saveSuperBowlGrid() {
+            localStorage.setItem('superBowlGrid', document.getElementById('gridContainer').innerHTML);
+        }
+
+
+        function renderGridFromData(gridData) {
+            const gridContainer = document.getElementById('gridContainer');
+            gridContainer.innerHTML = '';
+            const grid = document.createElement('div');
+            grid.classList.add('grid');
+
+            // Create header row
+            for (let i = 0; i < 11; i++) {
+                const cell = document.createElement('div');
+                if (i === 0) {
+                    cell.textContent = ' ';
+                } else {
+                    cell.textContent = Object.values(gridData['a'])[i];
+                    cell.classList.add('away-team', 'away-header');
+                }
+                grid.appendChild(cell);
+            }
+
+            // Create remaining rows
+            for (let i = 0; i < 10; i++) {
+                const row = String.fromCharCode(97 + i); // 'a' to 'j'
+                for (let j = 0; j < 11; j++) {
+                    const cell = document.createElement('div');
+                    cell.id = `${row}${j}`;
+                    if (j === 0) {
+                        cell.classList.add('home-header', 'home-team');
+                        cell.textContent = Object.keys(gridData)[i];
+                    } else {
+                        cell.textContent = gridData[row][j + 1];
+                        if (row === 'a' && j === 1) {
+                            cell.classList.add('neutral');
+                        } else if (row === 'a') {
+                            cell.classList.add('home-team');
+                        } else if (j === 1) {
+                            cell.classList.add('away-team');
+                        }
+                        cell.id = `${row}.${j}`;
+                    }
+                    grid.appendChild(cell);
+                }
+            }
+
+            gridContainer.appendChild(grid);
+        }
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
 </body>
+
 </html>
