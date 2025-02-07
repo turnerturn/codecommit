@@ -126,7 +126,7 @@
         </div>
         <div class="button-group">
             <button id="purchaseSquaresBtn" class="btn btn-success d-print-none" style="display: block;">Purchase Squares</button>
-            <button id="distributeSquaresButton" class="btn btn-secondary d-print-none" style="display: block;" onclick="distributeSquaresToGrid()">Distribute Squares</button>
+            <button id="shuffleSquaresButton" class="btn btn-secondary d-print-none" style="display: block;" onclick="shuffleGridSquares()">Shuffle</button>
 
         </div>
     </div>
@@ -193,9 +193,9 @@
                 </div>
                 <div class="modal-body">
                     <p>Click the "Create Board" to start a new game and to clear any remnants of memory from old sessions. Values 0 to 9 will be randomly distributed to column 1 of the grid for the home team. Likewise, values 0 to 9 will be randomly distributed to row 1 of the grid for away team.</p>
-                    <p>Click "Purchase Squares" any time someone desires to make a transaction. A total of 100 squares are available for purchase.</p>
-                    <p>Click "Distribute Squares" when you are ready to randomly assign everyone's purchased squares to the grid.</p>
-                    <p>Squares will be redistributed every time you click the "Distribute Squares" button.</p>
+                    <p>Click "Purchase Squares" any time someone desires to make a transaction. A total of 100 squares are available for purchase.  Your purchased squares will be filled into to the grid.  These will be shuffled on our next step.</p>
+                    <p>Click "Shuffle" when you are ready to shuffle everyone's purchased squares throughout the grid.</p>
+                    <p>Squares will be shuffled every time you click the "Shuffle" button.</p>
                     <p>Click "Print" and then print as PDF to save your results to a digital copy. This can prevent any unintended memory loss.</p>
                 </div>
                 <div class="modal-footer">
@@ -264,10 +264,12 @@
                         const [awayTeam, homeTeam] = superBowlEvent.name.split(' at ');
                         document.getElementById('homeTeam').textContent = homeTeam;
                         document.getElementById('awayTeam').textContent = awayTeam;
+                        localStorage.setItem('homeTeam', homeTeam);
+                        localStorage.setItem('awayTeam', awayTeam);
                         document.querySelectorAll('.team-info').forEach(el => el.style.display = 'block');
                         renderGrid();
                         document.getElementById('purchaseSquaresBtn').style.display = 'block';
-                        document.getElementById('distributeSquaresButton').style.display = 'block';
+                        document.getElementById('shuffleSquaresButton').style.display = 'block';
                     } else {
                         alert('Super Bowl event not found for the current year.');
                     }
@@ -337,11 +339,33 @@
             // Save updated transactions back to localStorage
             localStorage.setItem(key, JSON.stringify(transactions));
             initializeSquares();
+            fillSquaresToGrid();
         }
-
-        function distributeSquaresToGrid() {
+        function fillSquaresToGrid() {
             const squares = (localStorage.getItem('squares')) ? JSON.parse(localStorage.getItem('squares')) : [];
-            shuffleArray(squares);
+            localStorage.setItem('squares', JSON.stringify(squares));
+            let squareCount = 0;
+
+            const cells = [];
+
+            const squareElements = document.getElementsByClassName("square");
+            for(let i = 0 ; i < squareElements.length; i++) {
+                const item = squareElements[i];
+                cells.push({ id: item.id, text: item.textContent});
+            };
+
+            cells.forEach(cell => {
+              if(squareCount < squares.length ) {
+                 document.getElementById(cell.id).textContent = squares[squareCount].name;
+                 squares[squareCount].cellId = cell.id;
+                 squareCount = squareCount + 1;
+              }
+            });
+            localStorage.setItem("squares", JSON.stringify(squares));
+            localStorage.setItem('superBowlGrid', document.getElementById('gridContainer').innerHTML);
+        }
+        function shuffleGridSquares() {
+            const squares = (localStorage.getItem('squares')) ? JSON.parse(localStorage.getItem('squares')) : [];
             localStorage.setItem('squares', JSON.stringify(squares));
             let squareCount = 0;
 
@@ -373,6 +397,12 @@
         }
 
         function renderGrid() {
+            if(localStorage.getItem('homeTeam')) {
+                document.getElementById('homeTeam').textContent = localStorage.getItem('homeTeam');
+            }
+            if(localStorage.getItem('awayTeam')) {
+                document.getElementById('awayTeam').textContent = localStorage.getItem('awayTeam');
+            }
             const gridContainer = document.getElementById('gridContainer');
             if (localStorage.getItem('superBowlGrid')) {
                 gridContainer.innerHTML = localStorage.getItem('superBowlGrid');
