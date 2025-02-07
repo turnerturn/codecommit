@@ -55,7 +55,7 @@
             text-align: center;
         }
 
-        .neutral {
+        .grid .neutral {
             background-color: rgb(73, 73, 73);
             color: black;
         }
@@ -89,14 +89,22 @@
             flex: 1;
             margin: 0 10px;
         }
+
+        .question-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body class="" style="">
 
     <div class="hero">
-        <h1>Super Bowl Squares</h1>
-        <p class="d-print-none">Generate your Super Bowl squares.</p>
+        <h1 id="page-title">Super Bowl Squares</h1>
+        <p id="page-subtext" class="d-print-none">Generate your Super Bowl squares.</p>
+        <span class="question-icon" data-bs-toggle="modal" data-bs-target="#instructionsModal">?</span>
     </div>
 
     <div class="container mt-5">
@@ -106,10 +114,10 @@
         </div>
         <div class="team-info-container">
             <div class="text-center team-info home-team" style="display: block;">
-                <h5>Home Team: <span id="homeTeam">Philadelphia Eagles</span></h5>
+                <h5>Home Team: <span id="homeTeam">....</span></h5>
             </div>
             <div class="text-center team-info away-team" style="display: block;">
-                <h5>Away Team: <span id="awayTeam">Kansas City Chiefs</span></h5>
+                <h5>Away Team: <span id="awayTeam">....</span></h5>
             </div>
         </div>
         <div id="gridContainer" class="text-center">
@@ -119,6 +127,7 @@
         <div class="button-group">
             <button id="purchaseSquaresBtn" class="btn btn-success d-print-none" style="display: block;">Purchase Squares</button>
             <button id="distributeSquaresButton" class="btn btn-secondary d-print-none" style="display: block;" onclick="distributeSquaresToGrid()">Distribute Squares</button>
+
         </div>
     </div>
 
@@ -174,6 +183,28 @@
         </div>
     </div>
 
+    <!-- Instructions Modal -->
+    <div class="modal fade" id="instructionsModal" tabindex="-1" aria-labelledby="instructionsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="instructionsModalLabel">Instructions</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Click the "Create Board" to start a new game and to clear any remnants of memory from old sessions. Values 0 to 9 will be randomly distributed to column 1 of the grid for the home team. Likewise, values 0 to 9 will be randomly distributed to row 1 of the grid for away team.</p>
+                    <p>Click "Purchase Squares" any time someone desires to make a transaction. A total of 100 squares are available for purchase.</p>
+                    <p>Click "Distribute Squares" when you are ready to randomly assign everyone's purchased squares to the grid.</p>
+                    <p>Squares will be redistributed every time you click the "Distribute Squares" button.</p>
+                    <p>Click "Print" and then print as PDF to save your results to a digital copy. This can prevent any unintended memory loss.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -221,13 +252,22 @@
                     const currentYear = new Date().getFullYear();
                     const events = collectEvents(data);
                     const superBowlEvent = events.find(event => event.seasonEndDate.startsWith(currentYear.toString()) && event.weekText === 'Super Bowl');
-
+                    console.log('Super Bowl event:', JSON.stringify(superBowlEvent));
+                    if(superBowlEvent && superBowlEvent.notes && superBowlEvent.notes[0]) {
+                        document.getElementById('page-title').textContent = superBowlEvent.notes[0].headline;
+                    }
+                    if(superBowlEvent && superBowlEvent.shortName) {
+                        document.getElementById('page-subtext').textContent = superBowlEvent.shortName;
+                    }
+                    document.getElementById('page-title').textContent = superBowlEvent.notes[0].headline;
                     if (superBowlEvent) {
                         const [awayTeam, homeTeam] = superBowlEvent.name.split(' at ');
                         document.getElementById('homeTeam').textContent = homeTeam;
                         document.getElementById('awayTeam').textContent = awayTeam;
                         document.querySelectorAll('.team-info').forEach(el => el.style.display = 'block');
                         renderGrid();
+                        document.getElementById('purchaseSquaresBtn').style.display = 'block';
+                        document.getElementById('distributeSquaresButton').style.display = 'block';
                     } else {
                         alert('Super Bowl event not found for the current year.');
                     }
@@ -255,19 +295,22 @@
 
             items.forEach(item => {
                 for (let i = 0; i < item.count; i++) {
-                    squares.push({ name: item.name, shape: "square" });
+                    squares.push({ name: item.name });
                 }
             });
             document.getElementById('available-squares-count').textContent = `Available Squares: ${100 - squares.length}`;
+            if (squares.length >= 100) {
+                document.getElementById('purchaseSquaresBtn').style.display = 'none';
+            }
             return squares;
         }
         // Function to initialize and render a new grid
         function initializeSquares() {
-
-            if(!localStorage.getItem('transactions')) {
-                return;
+            let transactions = [];
+            if(localStorage.getItem('transactions')) {
+                transactions =   JSON.parse(localStorage.getItem('transactions'));
             }
-            const transactions =   JSON.parse(localStorage.getItem('transactions'));
+
             const squares = initSquares(transactions);
             localStorage.setItem('squares', JSON.stringify(squares));
         }
@@ -301,16 +344,25 @@
             shuffleArray(squares);
             localStorage.setItem('squares', JSON.stringify(squares));
             let squareCount = 0;
-            for (let row = 2; row < 11; row++) {
-                for (let col = 2; col < 12; col++) {
-                  if(squareCount >= squares.length) {
-                    continue;
-                  }
-                    const id = `col-${col}-row-${row}`;
-                    document.getElementById(id).textContent = squares[squareCount].name;
-                    squareCount = squareCount + 1;
-                }
-            }
+
+            const cells = [];
+
+            const squareElements = document.getElementsByClassName("square");
+            for(let i = 0 ; i < squareElements.length; i++) {
+                const item = squareElements[i];
+                cells.push({ id: item.id, text: item.textContent});
+            };
+
+            shuffleArray(cells);
+
+            cells.forEach(cell => {
+              if(squareCount < squares.length ) {
+                 document.getElementById(cell.id).textContent = squares[squareCount].name;
+                 squares[squareCount].cellId = cell.id;
+                 squareCount = squareCount + 1;
+              }
+            });
+            localStorage.setItem("squares", JSON.stringify(squares));
             localStorage.setItem('superBowlGrid', document.getElementById('gridContainer').innerHTML);
         }
         function shuffleArray(array) {
@@ -332,7 +384,7 @@
                     for (let col = 1; col < 12; col++) {
                         const cell = document.createElement('div');
                         cell.id = `col-${col}-row-${row}`;
-                        console.log(cell.id);
+                        cell.classList.add('square');
                         grid.appendChild(cell);
                     }
                 }
@@ -348,67 +400,25 @@
             shuffleArray(awayNumbers);
             shuffleArray(homeNumbers);
 
-            document.getElementById(`col-1-row-1`).classList.add('neutral');
+            const cellNeutral =  document.getElementById(`col-1-row-1`);
+            cellNeutral.classList.add('neutral');
+            cellNeutral.classList.remove('square');
             for (let i = 2; i < 12; i++) {
                 const cell = document.getElementById(`col-${i}-row-1`);
                 cell.textContent = awayNumbers[i - 2];
                 cell.classList.add('away-header', 'away-team');
+                cell.classList.remove('square');
             }
-            for (let i = 1; i < 12; i++) {
+            for (let i = 2; i < 12; i++) {
                 const cell = document.getElementById(`col-1-row-${i}`);
                 cell.textContent = homeNumbers[i - 2];
                 cell.classList.add('home-header', 'home-team');
+                cell.classList.remove('square');
             }
         }
 
         function saveSuperBowlGrid() {
             localStorage.setItem('superBowlGrid', document.getElementById('gridContainer').innerHTML);
-        }
-
-
-        function renderGridFromData(gridData) {
-            const gridContainer = document.getElementById('gridContainer');
-            gridContainer.innerHTML = '';
-            const grid = document.createElement('div');
-            grid.classList.add('grid');
-
-            // Create header row
-            for (let i = 0; i < 11; i++) {
-                const cell = document.createElement('div');
-                if (i === 0) {
-                    cell.textContent = ' ';
-                } else {
-                    cell.textContent = Object.values(gridData['a'])[i];
-                    cell.classList.add('away-team', 'away-header');
-                }
-                grid.appendChild(cell);
-            }
-
-            // Create remaining rows
-            for (let i = 0; i < 10; i++) {
-                const row = String.fromCharCode(97 + i); // 'a' to 'j'
-                for (let j = 0; j < 11; j++) {
-                    const cell = document.createElement('div');
-                    cell.id = `${row}${j}`;
-                    if (j === 0) {
-                        cell.classList.add('home-header', 'home-team');
-                        cell.textContent = Object.keys(gridData)[i];
-                    } else {
-                        cell.textContent = gridData[row][j + 1];
-                        if (row === 'a' && j === 1) {
-                            cell.classList.add('neutral');
-                        } else if (row === 'a') {
-                            cell.classList.add('home-team');
-                        } else if (j === 1) {
-                            cell.classList.add('away-team');
-                        }
-                        cell.id = `${row}.${j}`;
-                    }
-                    grid.appendChild(cell);
-                }
-            }
-
-            gridContainer.appendChild(grid);
         }
     </script>
 
