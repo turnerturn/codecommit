@@ -359,6 +359,8 @@
                  document.getElementById(cell.id).textContent = squares[squareCount].name;
                  squares[squareCount].cellId = cell.id;
                  squareCount = squareCount + 1;
+              }else{
+                document.getElementById(cell.id).textContent = '';
               }
             });
             localStorage.setItem("squares", JSON.stringify(squares));
@@ -384,6 +386,8 @@
                  document.getElementById(cell.id).textContent = squares[squareCount].name;
                  squares[squareCount].cellId = cell.id;
                  squareCount = squareCount + 1;
+              }else{
+                 document.getElementById(cell.id).textContent = '';
               }
             });
             localStorage.setItem("squares", JSON.stringify(squares));
