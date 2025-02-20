@@ -16,10 +16,10 @@
 #  */
 
 # Directory to search for gradle-wrapper.properties files contained in $HOME directory
-SEARCH_DIR="$HOME"
+SEARCH_DIR="/workspaces"
 
 # File to store the extracted Gradle wrapper distribution URLs
-GRADLE_WRAPPER_URLS_FILE="$HOME/gradle-wrapper-urls.txt"
+GRADLE_WRAPPER_URLS_FILE="/tmp/gradle-wrapper-urls.txt"
 
 # Find all gradle-wrapper.properties files and extract distribution URLs
 find "$SEARCH_DIR" -name "gradle-wrapper.properties" -print0 | while IFS= read -r -d '' file; do
